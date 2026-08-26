@@ -6,8 +6,8 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/ServiceWeaver/weaver"
-	"github.com/ServiceWeaver/weaver/runtime/codegen"
+	"github.com/RealLifeGlobal/weaver"
+	"github.com/RealLifeGlobal/weaver/runtime/codegen"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"reflect"
@@ -15,14 +15,14 @@ import (
 
 func init() {
 	codegen.Register(codegen.Registration{
-		Name:  "github.com/ServiceWeaver/weaver-kube/examples/echo/Echoer",
+		Name:  "github.com/RealLifeGlobal/weaver-kube/examples/echo/Echoer",
 		Iface: reflect.TypeOf((*Echoer)(nil)).Elem(),
 		Impl:  reflect.TypeOf(echoer{}),
 		LocalStubFn: func(impl any, caller string, tracer trace.Tracer) any {
-			return echoer_local_stub{impl: impl.(Echoer), tracer: tracer, echoMetrics: codegen.MethodMetricsFor(codegen.MethodLabels{Caller: caller, Component: "github.com/ServiceWeaver/weaver-kube/examples/echo/Echoer", Method: "Echo", Remote: false, Generated: true})}
+			return echoer_local_stub{impl: impl.(Echoer), tracer: tracer, echoMetrics: codegen.MethodMetricsFor(codegen.MethodLabels{Caller: caller, Component: "github.com/RealLifeGlobal/weaver-kube/examples/echo/Echoer", Method: "Echo", Remote: false, Generated: true})}
 		},
 		ClientStubFn: func(stub codegen.Stub, caller string) any {
-			return echoer_client_stub{stub: stub, echoMetrics: codegen.MethodMetricsFor(codegen.MethodLabels{Caller: caller, Component: "github.com/ServiceWeaver/weaver-kube/examples/echo/Echoer", Method: "Echo", Remote: true, Generated: true})}
+			return echoer_client_stub{stub: stub, echoMetrics: codegen.MethodMetricsFor(codegen.MethodLabels{Caller: caller, Component: "github.com/RealLifeGlobal/weaver-kube/examples/echo/Echoer", Method: "Echo", Remote: true, Generated: true})}
 		},
 		ServerStubFn: func(impl any, addLoad func(uint64, float64)) codegen.Server {
 			return echoer_server_stub{impl: impl.(Echoer), addLoad: addLoad}
@@ -33,7 +33,7 @@ func init() {
 		RefData: "",
 	})
 	codegen.Register(codegen.Registration{
-		Name:      "github.com/ServiceWeaver/weaver/Main",
+		Name:      "github.com/RealLifeGlobal/weaver/Main",
 		Iface:     reflect.TypeOf((*weaver.Main)(nil)).Elem(),
 		Impl:      reflect.TypeOf(server{}),
 		Listeners: []string{"echo"},
@@ -47,7 +47,7 @@ func init() {
 		ReflectStubFn: func(caller func(string, context.Context, []any, []any) error) any {
 			return main_reflect_stub{caller: caller}
 		},
-		RefData: "⟦2bd5349f:wEaVeReDgE:github.com/ServiceWeaver/weaver/Main→github.com/ServiceWeaver/weaver-kube/examples/echo/Echoer⟧\n⟦914f1096:wEaVeRlIsTeNeRs:github.com/ServiceWeaver/weaver/Main→echo⟧\n",
+		RefData: "⟦4ab0b403:wEaVeReDgE:github.com/RealLifeGlobal/weaver/Main→github.com/RealLifeGlobal/weaver-kube/examples/echo/Echoer⟧\n⟦b95a2e31:wEaVeRlIsTeNeRs:github.com/RealLifeGlobal/weaver/Main→echo⟧\n",
 	})
 }
 
@@ -176,21 +176,21 @@ var _ weaver.Main = (*main_client_stub)(nil)
 // you run "go build" or "go run".
 var _ codegen.LatestVersion = codegen.Version[[0][24]struct{}](`
 
-ERROR: You generated this file with 'weaver generate' v0.24.6 (codegen
+ERROR: You generated this file with 'weaver generate' (devel) (codegen
 version v0.24.0). The generated code is incompatible with the version of the
-github.com/ServiceWeaver/weaver module that you're using. The weaver module
+github.com/RealLifeGlobal/weaver module that you're using. The weaver module
 version can be found in your go.mod file or by running the following command.
 
-    go list -m github.com/ServiceWeaver/weaver
+    go list -m github.com/RealLifeGlobal/weaver
 
 We recommend updating the weaver module and the 'weaver generate' command by
 running the following.
 
-    go get github.com/ServiceWeaver/weaver@latest
-    go install github.com/ServiceWeaver/weaver/cmd/weaver@latest
+    go get github.com/RealLifeGlobal/weaver@latest
+    go install github.com/RealLifeGlobal/weaver/cmd/weaver@latest
 
 Then, re-run 'weaver generate' and re-build your code. If the problem persists,
-please file an issue at https://github.com/ServiceWeaver/weaver/issues.
+please file an issue at https://github.com/RealLifeGlobal/weaver/issues.
 
 `)
 

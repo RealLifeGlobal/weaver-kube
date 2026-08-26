@@ -24,12 +24,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime"
-	"github.com/ServiceWeaver/weaver/runtime/envelope"
-	"github.com/ServiceWeaver/weaver/runtime/logging"
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
-	"github.com/ServiceWeaver/weaver/runtime/traces"
+	"github.com/RealLifeGlobal/weaver/runtime"
+	"github.com/RealLifeGlobal/weaver/runtime/envelope"
+	"github.com/RealLifeGlobal/weaver/runtime/logging"
+	"github.com/RealLifeGlobal/weaver/runtime/metrics"
+	"github.com/RealLifeGlobal/weaver/runtime/protos"
+	"github.com/RealLifeGlobal/weaver/runtime/traces"
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
@@ -193,8 +193,8 @@ func (b *babysitter) watchPods(ctx context.Context, component string) error {
 		Jitter:   0.2,
 		Steps:    10, // Maximum retry attempts
 	}, func() (bool, error) {
-		watcher, err = watch2.NewRetryWatcher("1", &cache.ListWatch{
-			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
+		watcher, err = watch2.NewRetryWatcherWithContext(ctx, "1", &cache.ListWatch{
+			WatchFuncWithContext: func(ctx context.Context, options metav1.ListOptions) (watch.Interface, error) {
 				return b.clientset.CoreV1().Pods(b.cfg.Namespace).Watch(ctx, opts)
 			},
 		})

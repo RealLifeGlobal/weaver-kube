@@ -54,7 +54,7 @@ make:
 
     ```shell
     cd weaver-kube
-    git remote add upstream git@github.com:ServiceWeaver/weaver-kube.git
+    git remote add upstream git@github.com:RealLifeGlobal/weaver-kube.git
     ```
 ### Making changes
 
@@ -133,7 +133,7 @@ Weaver KUBE deployer.
     of the `upstream` repository. The reviewer may do this without
     being asked.
 
-    Select the `Squash and merge` option on https://github.com/ServiceWeaver/weaver-kube
+    Select the `Squash and merge` option on https://github.com/RealLifeGlobal/weaver-kube
     or use the command line instructions found on that page. Edit the commit message
     as appropriate for the squashed commit.
 
@@ -162,7 +162,7 @@ change prior to sending a pull request. To do so, either file a
 
 [cla]: https://cla.developers.google.com/about
 [github_help]: https://help.github.com/articles/about-pull-requests/
-[github_weaver_kube]: https://github.com/ServiceWeaver/weaver-kube
-[issues]: https://github.com/ServiceWeaver/weaver-kube/issues
-[new_issue]: https://github.com/ServiceWeaver/weaver-kube/issues/new
+[github_weaver_kube]: https://github.com/RealLifeGlobal/weaver-kube
+[issues]: https://github.com/RealLifeGlobal/weaver-kube/issues
+[new_issue]: https://github.com/RealLifeGlobal/weaver-kube/issues/new
 [workflow]: https://www.google.com/search?q=github+fork+and+branch+workflow

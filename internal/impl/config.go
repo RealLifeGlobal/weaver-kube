@@ -104,7 +104,10 @@ type kubeConfig struct {
 	StorageSpec volumeSpecs
 
 	// Options for probes to check the readiness/liveness/startup of the pods.
-	// Note that the scaling specs should satisfy the format specified in [1].
+	// Note that the probe specs should satisfy the format specified in [1].
+	//
+	// These apply to every group. A group may override any individual probe via
+	// its own ProbeSpec — see the note on Groups below.
 	//
 	// [1] https://pkg.go.dev/k8s.io/api/core/v1#Probe.
 	ProbeSpec probes

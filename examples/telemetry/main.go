@@ -33,17 +33,18 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/ServiceWeaver/weaver-kube/tool"
-	"github.com/ServiceWeaver/weaver/runtime/metrics"
-	"github.com/ServiceWeaver/weaver/runtime/prometheus"
-	"go.opentelemetry.io/otel/exporters/jaeger" //lint:ignore SA1019 TODO: Update
+	"github.com/RealLifeGlobal/weaver-kube/tool"
+	"github.com/RealLifeGlobal/weaver/runtime/metrics"
+	"github.com/RealLifeGlobal/weaver/runtime/prometheus"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 const (
 	// The Jaeger and Prometheus ports. These values should be the same as the
-	// ones in jaeger.yaml and prometheus.yaml.
-	jaegerPort     = 14268
+	// ones in jaeger.yaml and prometheus.yaml. Jaeger ingests traces over OTLP
+	// on port 4318; its legacy /api/traces collector endpoint is deprecated.
+	jaegerOTLPPort = 4318
 	prometheusPort = 9090
 )
 
@@ -75,10 +76,11 @@ func (p *prometheusExporter) handleMetrics(_ context.Context, metrics []*metrics
 }
 
 func main() {
-	// Export traces to Jaegar.
-	jaegerURL := fmt.Sprintf("http://jaeger:%d/api/traces", jaegerPort)
-	endpoint := jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(jaegerURL))
-	traceExporter, err := jaeger.New(endpoint)
+	// Export traces to Jaeger over OTLP/HTTP.
+	traceExporter, err := otlptracehttp.New(context.Background(),
+		otlptracehttp.WithEndpoint(fmt.Sprintf("jaeger:%d", jaegerOTLPPort)),
+		otlptracehttp.WithInsecure(),
+	)
 	if err != nil {
 		panic(err)
 	}

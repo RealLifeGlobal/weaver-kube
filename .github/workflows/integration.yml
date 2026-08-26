@@ -39,16 +39,16 @@ jobs:
         sudo systemctl restart docker
 
     - name: Check out the repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: 'stable'
         cache: true
 
     - name: Setup kubectl.
-      uses: azure/setup-kubectl@v3
+      uses: azure/setup-kubectl@v4
 
     - name: Setup minikube
       uses: medyagh/setup-minikube@master

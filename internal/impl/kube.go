@@ -23,19 +23,20 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/ServiceWeaver/weaver/runtime/bin"
-	"github.com/ServiceWeaver/weaver/runtime/protos"
+	"maps"
+
+	"github.com/RealLifeGlobal/weaver/runtime/bin"
+	"github.com/RealLifeGlobal/weaver/runtime/protos"
 	"github.com/google/uuid"
-	"golang.org/x/exp/maps"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/types/known/durationpb"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
-	_ "k8s.io/api/autoscaling/v2beta2"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -715,7 +716,7 @@ func newDeployment(app *protos.AppConfig, cfg *kubeConfig, depId, image string) 
 	}
 
 	// Sort groups by name to ensure stable YAML.
-	sorted := maps.Values(groupsByName)
+	sorted := slices.Collect(maps.Values(groupsByName))
 	sort.Slice(sorted, func(i, j int) bool {
 		return sorted[i].Name < sorted[j].Name
 	})

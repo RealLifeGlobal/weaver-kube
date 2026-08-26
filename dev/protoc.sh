@@ -40,19 +40,15 @@ if test -z $gengo; then
 fi
 
 # Get the local module directory that stores protos for the
-# github.com/ServiceWeaver/weaver module.
-go mod download github.com/ServiceWeaver/weaver
-weaver_dep=$(go mod graph | grep "github.com/ServiceWeaver/weaver-kube github.com/ServiceWeaver/weaver@")
-if test -z "$weaver_dep"; then
-  printf "Go module github.com/ServiceWeaver/weaver not found.  Please run:\n\tgo mod tidy\n and then re-run this command."
+# github.com/RealLifeGlobal/weaver module. "go list -m -f {{.Dir}}" resolves it
+# directly; unlike hand-building a module cache path, it stays correct
+# regardless of how the module name is case-escaped and also works when the
+# module is replaced with a local checkout.
+go mod download github.com/RealLifeGlobal/weaver
+weaver_dir=$(go list -m -f '{{.Dir}}' github.com/RealLifeGlobal/weaver)
+if test -z "$weaver_dir"; then
+  printf "Go module github.com/RealLifeGlobal/weaver not found.  Please run:\n\tgo mod tidy\n and then re-run this command."
   exit 1
 fi
-weaver_split=(${weaver_dep//@/ })
-weaver_version=${weaver_split[2]}
-if test -z $weaver_version; then
-  printf "Internal error: cannot determine version for github.com/ServiceWeaver/weaver module."
-  exit 1
-fi
-weaver_dir=$gopath/pkg/mod/github.com/\!service\!weaver/weaver@$weaver_version
 
 exec protoc -I . -I $weaver_dir --go_out=. --go_opt=paths=source_relative,Mgoogle/protobuf/timestamp.proto=google.golang.org/protobuf/types/known/timestamppb ${1+"$@"}
