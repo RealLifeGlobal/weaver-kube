@@ -107,16 +107,16 @@ type kubeConfig struct {
 	// Note that the probe specs should satisfy the format specified in [1].
 	//
 	// These apply to every group. A group may override any individual probe via
-	// its own ProbeSpec — see the note on Groups below.
+	// its own ProbeSpec; see the note on Groups below.
 	//
 	// [1] https://pkg.go.dev/k8s.io/api/core/v1#Probe.
 	ProbeSpec probes
 
 	// Groups contains kubernetes configuration for groups of collocated components.
 	// Note that some knobs if specified for a group will override the corresponding
-	// knob set for all the groups (e.g., ScalingSpec, ResourceSpec); for knobs like
-	// Volumes, each group will contain the sum of the volumes specified for all
-	// groups and the ones set for the group.
+	// knob set for all the groups (e.g., ScalingSpec, ResourceSpec, ProbeSpec); for
+	// knobs like Volumes, each group will contain the sum of the volumes specified
+	// for all groups and the ones set for the group.
 	Groups []group
 
 	// TelemetrySpec contains options to control how the telemetry is being manipulated.
@@ -160,7 +160,13 @@ type group struct {
 	StorageSpec  volumeSpecs // list of volumes and volume mounts
 	ResourceSpec *corev1.ResourceRequirements
 	ScalingSpec  *autoscalingv2.HorizontalPodAutoscalerSpec
-	listeners    []listener // hosted listeners, populated by the kube deployer.
+	// Probes for this group. Each probe set here overrides the corresponding
+	// app-level probe; a nil probe inherits the app-level one. Needed because a
+	// probe that suits one group is often wrong for another: only the group
+	// hosting a listener binds that listener port, so an httpGet probe against
+	// it would never succeed in any other group.
+	ProbeSpec probes
+	listeners []listener // hosted listeners, populated by the kube deployer.
 }
 
 // volumeSpecs encapsulates volumes and volume mounts specs as defined by the

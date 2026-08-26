@@ -319,18 +319,35 @@ func buildContainer(d deployment, g group) (corev1.Container, error) {
 		c.Resources = *d.config.ResourceSpec
 	}
 
-	// Add probes if any.
-	if d.config.ProbeSpec.ReadinessProbe != nil {
-		c.ReadinessProbe = d.config.ProbeSpec.ReadinessProbe
+	// Add probes if any. A probe set on the group takes priority over the one
+	// set for the app, matching how ResourceSpec and ScalingSpec behave. The
+	// override is per probe rather than all-or-nothing, so a group can, say,
+	// replace only the readiness probe and still inherit the app startup probe.
+	if p := pickProbe(g.ProbeSpec.ReadinessProbe, d.config.ProbeSpec.ReadinessProbe); p != nil {
+		c.ReadinessProbe = p
 	}
-	if d.config.ProbeSpec.LivenessProbe != nil {
-		c.LivenessProbe = d.config.ProbeSpec.LivenessProbe
+	if p := pickProbe(g.ProbeSpec.LivenessProbe, d.config.ProbeSpec.LivenessProbe); p != nil {
+		c.LivenessProbe = p
 	}
-	if d.config.ProbeSpec.StartupProbe != nil {
-		c.StartupProbe = d.config.ProbeSpec.StartupProbe
+	if p := pickProbe(g.ProbeSpec.StartupProbe, d.config.ProbeSpec.StartupProbe); p != nil {
+		c.StartupProbe = p
 	}
 
 	return c, nil
+}
+
+// pickProbe returns the probe that should be applied to a container, given the
+// probe configured for its group and the one configured for the whole app. A
+// group probe wins; a nil group probe inherits the app probe.
+//
+// Note that a group cannot opt out of an app-level probe: nil means inherit,
+// not disable. If a group needs no probe at all, leave the app level unset and
+// configure each group that wants one.
+func pickProbe(group, app *corev1.Probe) *corev1.Probe {
+	if group != nil {
+		return group
+	}
+	return app
 }
 
 // generateYAMLs generates Kubernetes YAML configurations for a given
@@ -705,6 +722,7 @@ func newDeployment(app *protos.AppConfig, cfg *kubeConfig, depId, image string) 
 				StorageSpec:  cgroup.StorageSpec,
 				ResourceSpec: cgroup.ResourceSpec,
 				ScalingSpec:  cgroup.ScalingSpec,
+				ProbeSpec:    cgroup.ProbeSpec,
 			}
 		}
 		g.Components = append(g.Components, component)
