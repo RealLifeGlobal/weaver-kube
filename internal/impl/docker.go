@@ -29,17 +29,13 @@ import (
 	"github.com/RealLifeGlobal/weaver/runtime/protos"
 )
 
-// The maximum time to wait for `docker build` to finish before aborting.
-const (
-	dockerBuildTimeout = time.Second * 120
-)
-
 // dockerOptions configure how Docker images are built and pushed.
 type dockerOptions struct {
-	image     string // see kubeConfig.Image
-	repo      string // see kubeConfig.Repo
-	baseImage string // see kubeConfig.BaseImage
-	buildTool string // build tool to be used for building container image ( i.e `podman` or `docker` )
+	image        string        // see kubeConfig.Image
+	repo         string        // see kubeConfig.Repo
+	baseImage    string        // see kubeConfig.BaseImage
+	buildTool    string        // build tool to be used for building container image ( i.e `podman` or `docker` )
+	buildTimeout time.Duration // see kubeConfig.BuildTimeout
 }
 
 // buildAndUploadDockerImage builds a Docker image and uploads it to a remote
@@ -166,7 +162,7 @@ ENTRYPOINT ["{{.Entrypoint}}"]
 		return "", err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, dockerBuildTimeout)
+	ctx, cancel := context.WithTimeout(ctx, opts.buildTimeout)
 	defer cancel()
 	return image, dockerBuild(ctx, workDir, image, opts.buildTool)
 }
