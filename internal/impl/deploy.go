@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/RealLifeGlobal/weaver/runtime"
 	"github.com/RealLifeGlobal/weaver/runtime/bin"
@@ -31,6 +32,7 @@ import (
 
 const (
 	defaultBuildTool                = "docker"
+	defaultBuildTimeout             = "15m"
 	defaultNamespace                = "default"
 	defaultServiceAccount           = "default"
 	defaultBaseImage                = "ubuntu:rolling"
@@ -94,6 +96,10 @@ func Deploy(ctx context.Context, configFilename string) error {
 	default:
 		return fmt.Errorf("unsupported build tool: %s; supported tools are docker and podman", config.BuildTool)
 	}
+	buildTimeout, err := parseBuildTimeout(config.BuildTimeout)
+	if err != nil {
+		return err
+	}
 	if config.Namespace == "" {
 		config.Namespace = defaultNamespace
 	}
@@ -127,7 +133,7 @@ func Deploy(ctx context.Context, configFilename string) error {
 	depId := uuid.New().String()
 
 	// Build the docker image for the deployment.
-	opts := dockerOptions{image: config.Image, repo: config.Repo, baseImage: config.BaseImage, buildTool: config.BuildTool}
+	opts := dockerOptions{image: config.Image, repo: config.Repo, baseImage: config.BaseImage, buildTool: config.BuildTool, buildTimeout: buildTimeout}
 	image, err := buildAndUploadDockerImage(ctx, app, depId, opts)
 	if err != nil {
 		return err
@@ -193,4 +199,20 @@ persists, please file an issue at https://github.com/RealLifeGlobal/weaver/issue
 			relativize(appBinary), appBinaryVersions.ModuleVersion, appBinaryVersions.DeployerVersion, selfVersion, weaverKubeVersions.ModuleVersion, version.DeployerVersion)
 	}
 	return nil
+}
+
+// parseBuildTimeout parses the buildTimeout deployment config value, applying
+// defaultBuildTimeout when it is empty. The result must be a positive duration.
+func parseBuildTimeout(s string) (time.Duration, error) {
+	if s == "" {
+		s = defaultBuildTimeout
+	}
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		return 0, fmt.Errorf("invalid build timeout %q: %w", s, err)
+	}
+	if d <= 0 {
+		return 0, fmt.Errorf("invalid build timeout %q: must be positive", s)
+	}
+	return d, nil
 }

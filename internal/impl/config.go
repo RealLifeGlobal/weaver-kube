@@ -44,6 +44,16 @@ type kubeConfig struct {
 	// Supported values are `docker` and `podman`.
 	BuildTool string
 
+	// BuildTimeout bounds how long the container build (`docker build` or
+	// `podman build`) may run before it is aborted. It is a Go duration string
+	// such as "10m" or "1h".
+	//
+	// If empty, Service Weaver uses "15m". When the deploying binary cannot run
+	// inside the container (for example a macOS host building linux/amd64),
+	// the build compiles weaver-kube from source inside the container, and
+	// under CPU emulation that step alone can take several minutes.
+	BuildTimeout string
+
 	// Repo is the name of the repository where the container image is uploaded.
 	//
 	// For example, if Image is "mycontainer:v1" and Repo is
