@@ -34,6 +34,7 @@ type dockerOptions struct {
 	image        string        // see kubeConfig.Image
 	repo         string        // see kubeConfig.Repo
 	baseImage    string        // see kubeConfig.BaseImage
+	builderImage string        // see kubeConfig.BuilderImage
 	buildTool    string        // build tool to be used for building container image ( i.e `podman` or `docker` )
 	buildTimeout time.Duration // see kubeConfig.BuildTimeout
 }
@@ -128,14 +129,17 @@ downloaded and installed in the container. Do you want to proceed? [Y/n] `)
 
 	// Create a Dockerfile in workDir/.
 	type content struct {
-		Install    string // "weaver-kube" binary to install, if any
-		Entrypoint string // container entrypoint
-		BaseImage  string // Name of the base image used to build the container
+		Install      string // "weaver-kube" binary to install, if any
+		Entrypoint   string // container entrypoint
+		BaseImage    string // Name of the base image used to build the container
+		BuilderImage string // golang image that compiles Install
 	}
+	// CGO_ENABLED=0: the binary is copied from the builder into BaseImage, which
+	// the user chooses and whose libc need not match the builder's.
 	var template = template.Must(template.New("Dockerfile").Parse(`
 {{if .Install }}
-FROM golang:bullseye as builder
-RUN go install "{{.Install}}"
+FROM {{.BuilderImage}} AS builder
+RUN CGO_ENABLED=0 go install "{{.Install}}"
 {{end}}
 
 FROM {{.BaseImage}}
@@ -158,6 +162,7 @@ ENTRYPOINT ["{{.Entrypoint}}"]
 		c.Entrypoint = filepath.Join("/weaver", filepath.Base(tool))
 	}
 	c.BaseImage = opts.baseImage
+	c.BuilderImage = opts.builderImage
 	if err := template.Execute(dockerFile, c); err != nil {
 		return "", err
 	}

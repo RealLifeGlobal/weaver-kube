@@ -45,3 +45,23 @@ func TestParseBuildTimeout(t *testing.T) {
 		})
 	}
 }
+
+func TestDefaultBuilderImage(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"patch release", "go1.26.5", "golang:1.26"},
+		{"first release of a minor", "go1.27", "golang:1.27"},
+		{"release candidate", "go1.27rc1", "golang:1.27"},
+		{"devel toolchain falls back", "devel go1.28-8c2e1a4 Mon Sep 1 2026", fallbackBuilderImage},
+		{"empty falls back", "", fallbackBuilderImage},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			if got := defaultBuilderImage(c.in); got != c.want {
+				t.Errorf("defaultBuilderImage(%q) = %q, want %q", c.in, got, c.want)
+			}
+		})
+	}
+}

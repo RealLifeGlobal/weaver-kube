@@ -54,6 +54,16 @@ type kubeConfig struct {
 	// under CPU emulation that step alone can take several minutes.
 	BuildTimeout string
 
+	// BuilderImage is the golang image that compiles weaver-kube inside the
+	// container, used only when the deploying binary cannot run there (see
+	// BuildTimeout). It must provide a Go at least as new as the go directive in
+	// weaver-kube's go.mod: the official golang images set GOTOOLCHAIN=local, so
+	// an older one fails the install instead of fetching a toolchain.
+	//
+	// If empty, Service Weaver picks the golang image of the Go release the
+	// deploying binary was built with, e.g. "golang:1.26".
+	BuilderImage string
+
 	// Repo is the name of the repository where the container image is uploaded.
 	//
 	// For example, if Image is "mycontainer:v1" and Repo is

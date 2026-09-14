@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	goruntime "runtime"
 	"time"
 
 	"github.com/RealLifeGlobal/weaver/runtime"
@@ -37,7 +39,13 @@ const (
 	defaultServiceAccount           = "default"
 	defaultBaseImage                = "ubuntu:rolling"
 	defaultMinExportMetricsInterval = "30s"
+
+	// fallbackBuilderImage covers a Go version string that names no release
+	// (a devel toolchain); it matches the go directive in this module's go.mod.
+	fallbackBuilderImage = "golang:1.26"
 )
+
+var goReleaseRE = regexp.MustCompile(`^go(\d+\.\d+)`)
 
 // Deploy generates a Kubernetes YAML file and corresponding Docker image to
 // deploy the Service Weaver application specified by the provided kube.yaml
@@ -109,6 +117,9 @@ func Deploy(ctx context.Context, configFilename string) error {
 	if config.BaseImage == "" {
 		config.BaseImage = defaultBaseImage
 	}
+	if config.BuilderImage == "" {
+		config.BuilderImage = defaultBuilderImage(goruntime.Version())
+	}
 	if config.Telemetry.Metrics.ExportInterval == "" {
 		config.Telemetry.Metrics.ExportInterval = defaultMinExportMetricsInterval
 	}
@@ -133,7 +144,7 @@ func Deploy(ctx context.Context, configFilename string) error {
 	depId := uuid.New().String()
 
 	// Build the docker image for the deployment.
-	opts := dockerOptions{image: config.Image, repo: config.Repo, baseImage: config.BaseImage, buildTool: config.BuildTool, buildTimeout: buildTimeout}
+	opts := dockerOptions{image: config.Image, repo: config.Repo, baseImage: config.BaseImage, builderImage: config.BuilderImage, buildTool: config.BuildTool, buildTimeout: buildTimeout}
 	image, err := buildAndUploadDockerImage(ctx, app, depId, opts)
 	if err != nil {
 		return err
@@ -199,6 +210,17 @@ persists, please file an issue at https://github.com/RealLifeGlobal/weaver/issue
 			relativize(appBinary), appBinaryVersions.ModuleVersion, appBinaryVersions.DeployerVersion, selfVersion, weaverKubeVersions.ModuleVersion, version.DeployerVersion)
 	}
 	return nil
+}
+
+// defaultBuilderImage is the golang image for the Go release goVersion (a
+// runtime.Version() string) names. The deploying binary was built against this
+// module's go.mod, so its own release always satisfies the go directive there.
+func defaultBuilderImage(goVersion string) string {
+	m := goReleaseRE.FindStringSubmatch(goVersion)
+	if m == nil {
+		return fallbackBuilderImage
+	}
+	return "golang:" + m[1]
 }
 
 // parseBuildTimeout parses the buildTimeout deployment config value, applying
